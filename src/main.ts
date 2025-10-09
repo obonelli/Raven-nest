@@ -16,7 +16,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  // Usa otro puerto (por ejemplo 4000)
   const port = Number(process.env.PORT || 4000);
   await app.listen(port);
   console.log(`🚀 Server running on http://localhost:${port}`);

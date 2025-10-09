@@ -15,7 +15,7 @@ import { UsersModule } from './users/users.module';
         username: process.env.PGUSER,
         password: process.env.PGPASSWORD,
         autoLoadEntities: true,
-        synchronize: true, // solo demo
+        synchronize: true,
         ssl: { rejectUnauthorized: false },
       }),
     }),
