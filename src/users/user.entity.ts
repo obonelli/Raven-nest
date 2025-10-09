@@ -11,6 +11,10 @@ export class User {
     @Column({ unique: true })
     email: string;
 
+    /** BCrypt hash of the password. Not selected by default. */
+    @Column({ select: false })
+    password: string;
+
     @CreateDateColumn({ type: 'timestamp' })
     createdAt: Date;
 }
