@@ -6,10 +6,26 @@ import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class UsersService {
-    constructor(@InjectRepository(User) private repo: Repository<User>) { }
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepo: Repository<User>,
+    ) { }
 
-    create(dto: CreateUserDto) { return this.repo.save(this.repo.create(dto)); }
-    findAll() { return this.repo.find(); }
-    findOne(id: number) { return this.repo.findOneBy({ id }); }
-    remove(id: number) { return this.repo.delete(id); }
+    async create(dto: CreateUserDto) {
+        const user = this.userRepo.create(dto);
+        await this.userRepo.save(user);
+        return { message: '✅ User created successfully', user };
+    }
+
+    findAll() {
+        return this.userRepo.find();
+    }
+
+    findOne(id: number) {
+        return this.userRepo.findOneBy({ id });
+    }
+
+    remove(id: number) {
+        return this.userRepo.delete(id);
+    }
 }
