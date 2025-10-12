@@ -1,16 +1,17 @@
+import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Request, Response } from 'express'; // for typing the custom route handler
+import { Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // 🌐 Enable CORS with dynamic origins from environment variable
+  // 🌐 Enable CORS with dynamic origins from env variable
   const corsList = (process.env.CORS_ORIGINS || '*')
     .split(',')
-    .map(s => s.trim())
+    .map((s) => s.trim())
     .filter(Boolean);
 
   app.enableCors({
@@ -20,10 +21,20 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   });
 
-  // 🧹 Global pipes for validation and transformation
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // 🛡️ Basic security middleware
+  app.use(helmet());
 
-  // 📘 Swagger configuration with JWT Bearer authentication
+  // 🧹 Global validation and transformation for DTOs
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // remove unknown properties
+      forbidNonWhitelisted: true, // throw error if extra props are sent
+      transform: true, // auto-transform payloads to DTO types
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+
+  // 📘 Swagger setup with JWT bearer authentication
   const config = new DocumentBuilder()
     .setTitle('🦅 Raven Nest API')
     .setDescription('Demo backend built with NestJS + TypeORM + Supabase')
@@ -37,21 +48,21 @@ async function bootstrap() {
         description: 'JWT session token',
         in: 'header',
       },
-      'access-token', // security scheme name
+      'access-token',
     )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
 
-  // 🧩 Serve a custom JS for auto-authorization after /auth/login
+  // 🧩 Custom script to auto-login and persist token in Swagger UI
   const customJsPath = '/swagger-custom.js';
-  const http = app.getHttpAdapter().getInstance(); // Express app instance
+  const http = app.getHttpAdapter().getInstance();
 
   http.get(customJsPath, (_req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/javascript');
     res.send(`
 (function () {
-  // Try to preauthorize using token stored in localStorage when Swagger UI loads
+  // Preauthorize using token from localStorage
   function preauthFromStorage() {
     try {
       var t = localStorage.getItem('raven_token');
@@ -63,7 +74,7 @@ async function bootstrap() {
   }
   preauthFromStorage();
 
-  // Intercept fetch requests to detect /auth/login responses and auto-save the token
+  // Intercept fetch to detect /auth/login responses and auto-save token
   var _fetch = window.fetch;
   window.fetch = function() {
     return _fetch.apply(this, arguments).then(function(res){
@@ -75,7 +86,6 @@ async function bootstrap() {
           res.clone().json().then(function(data){
             var token = data && (data.access_token || data.token);
             if (token) {
-              // Save token locally and preauthorize automatically
               try { localStorage.setItem('raven_token', token); } catch(_){}
               if (window.ui) {
                 try { window.ui.preauthorizeApiKey('access-token', token); }
@@ -91,13 +101,13 @@ async function bootstrap() {
 })();`);
   });
 
-  // ⚙️ Setup Swagger UI with persistence and injected JS
+  // ⚙️ Swagger UI configuration
   SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
-      persistAuthorization: true, // keeps token after refresh
+      persistAuthorization: true, // keep JWT after refresh
       docExpansion: 'list',
     },
-    customJs: customJsPath, // injects the custom script
+    customJs: customJsPath,
     customSiteTitle: 'Raven Nest API • Docs',
   });
 
