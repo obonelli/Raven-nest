@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    container_name: otel-collector
+    ports:
+      - "4318:4318" # Puerto OTLP HTTP
+      - "55680:55680"
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel/config.yaml

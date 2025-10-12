@@ -1,3 +1,6 @@
+// OpenTelemetry (Splunk Observability) must be initialized BEFORE anything else
+import './otel.init';
+
 import helmet from 'helmet';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
