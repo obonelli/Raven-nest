@@ -157,8 +157,8 @@ feat(auth): add JWT refresh token endpoint
 ## 🧑‍💻 Maintainers
 
 **Raven Core Team**  
-Lead Technical Engineer: *María Lucía*  
-Assistant Engineer: *Sofi*
+Lead Technical Engineer: *Oscar Bonelli*  
+Assistant Engineer: *Sofia*
 
 ---
 
